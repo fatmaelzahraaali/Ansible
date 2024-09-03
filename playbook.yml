@@ -1,0 +1,40 @@
+---
+- name: User Management Playbook
+  hosts: web
+  become: yes
+  remote_user: ubuntu
+  vars:
+    user_name: "ansible_user"
+    user_home: "/home/{{ user_name }}"
+    directory_name: "ansDir"
+    file_name: "test.txt"
+    file_content: "This is the content of the file."
+
+  tasks:
+    - name: Create a user using variables
+      user:
+        name: "{{ user_name }}"
+        state: present
+        create_home: yes
+
+    - name: Create a directory inside the user's home directory
+      file:
+        path: "{{ user_home }}/{{ directory_name }}"
+        state: directory
+        owner: "{{ user_name }}"
+        mode: '0755'
+
+    - name: Create a file inside the created directory with specific content
+      copy:
+        dest: "{{ user_home }}/{{ directory_name }}/{{ file_name }}"
+        content: "{{ file_content }}"
+        owner: "{{ user_name }}"
+        mode: '0644'
+
+    - name: List the contents of the directory and display the output
+      command: ls -l "{{ user_home }}/{{ directory_name }}"
+      register: dir_contents
+
+    - name: Display directory contents
+      debug:
+        var: dir_contents.stdout
